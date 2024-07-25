@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "a practice of publishing to npm",
   "main": "dist/index.js",
+  "repository": {
+    "url": "git+https://github.com/nikolat/npm-publish-practice"
+  },
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
