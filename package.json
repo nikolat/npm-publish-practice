@@ -2,9 +2,10 @@
   "name": "@nikolat/npm-publish-practice",
   "version": "0.1.5",
   "type": "module",
+  "license": "CC0-1.0",
+  "author": "Don",
   "description": "a practice of publishing to npm",
   "main": "dist/makibishi.js",
-  "types": "dist/index.d.ts",
   "repository": {
     "url": "git+https://github.com/nikolat/npm-publish-practice"
   },
@@ -22,8 +23,6 @@
     "lint": "prettier --check .",
     "format": "prettier --write ."
   },
-  "author": "Don",
-  "license": "CC0-1.0",
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^3.1.1",
     "@tsconfig/svelte": "^5.0.4",
