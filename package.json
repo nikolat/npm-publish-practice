@@ -1,0 +1,17 @@
+{
+  "name": "@nikolat/npm-publish-practice",
+  "version": "0.1.0",
+  "description": "a practice of publishing to npm",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Don",
+  "license": "CC0-1.0",
+  "dependencies": {
+    "typescript": "^5.5.4"
+  }
+}
