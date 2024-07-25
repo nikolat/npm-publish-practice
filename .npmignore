@@ -1,4 +1,10 @@
 /node_modules
 /src
-tsconfig.json
 /.github
+/.vscode
+.prettierrc.json
+index.html
+svelte.config.js
+tsconfig.json
+tsconfig.node.json
+vite.config.ts

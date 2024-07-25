@@ -4,10 +4,14 @@
   "type": "module",
   "description": "a practice of publishing to npm",
   "main": "dist/makibishi.js",
+  "types": "dist/index.d.ts",
   "repository": {
     "url": "git+https://github.com/nikolat/npm-publish-practice"
   },
-  "types": "dist/index.d.ts",
+  "homepage": "https://github.com/nikolat/npm-publish-practice#readme",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "prepare": "npm run build",
     "dev": "vite",
