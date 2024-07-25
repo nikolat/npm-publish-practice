@@ -1,6 +1,6 @@
 {
   "name": "@nikolat/npm-publish-practice",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "type": "module",
   "description": "a practice of publishing to npm",
   "main": "dist/makibishi.js",
