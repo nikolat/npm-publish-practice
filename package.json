@@ -1,6 +1,6 @@
 {
   "name": "@nikolat/npm-publish-practice",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "a practice of publishing to npm",
   "homepage": "https://github.com/nikolat/npm-publish-practice#readme",
   "bugs": {
