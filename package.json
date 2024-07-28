@@ -1,19 +1,24 @@
 {
   "name": "@nikolat/npm-publish-practice",
   "version": "0.1.6",
-  "type": "module",
-  "license": "CC0-1.0",
-  "author": "Don",
   "description": "a practice of publishing to npm",
-  "main": "dist/makibishi.js",
-  "repository": {
-    "url": "git+https://github.com/nikolat/npm-publish-practice"
-  },
   "homepage": "https://github.com/nikolat/npm-publish-practice#readme",
+  "bugs": {
+    "url": "https://github.com/nikolat/npm-publish-practice/issues"
+  },
+  "license": "CC0-1.0",
+  "author": {
+    "name": "Don"
+  },
   "files": [
     "dist",
     "!dist/index.html"
   ],
+  "browser": "dist/makibishi.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nikolat/npm-publish-practice.git"
+  },
   "scripts": {
     "prepare": "npm run build",
     "dev": "vite",
@@ -22,6 +27,9 @@
     "check": "svelte-check --tsconfig ./tsconfig.json && tsc -p tsconfig.node.json",
     "lint": "prettier --check .",
     "format": "prettier --write ."
+  },
+  "dependencies": {
+    "nostr-tools": "^2.7.1"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^3.1.1",
@@ -35,7 +43,5 @@
     "vite": "^5.3.4",
     "vite-plugin-css-injected-by-js": "^3.5.1"
   },
-  "dependencies": {
-    "nostr-tools": "^2.7.1"
-  }
+  "type": "module"
 }

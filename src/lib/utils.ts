@@ -20,7 +20,7 @@ export const getGeneralEvents = (
   relays: string[],
   filters: Filter[],
   callbackEvent: Function = () => {},
-  autoclose: boolean = true,
+  autoClose: boolean = true,
 ): Promise<NostrEvent[]> => {
   return new Promise((resolve) => {
     const events: NostrEvent[] = [];
@@ -29,7 +29,7 @@ export const getGeneralEvents = (
       callbackEvent(ev);
     };
     const oneose = () => {
-      if (autoclose) sub.close();
+      if (autoClose) sub.close();
       resolve(events);
     };
     const sub: SubCloser = pool.subscribeMany(relays, filters, {
@@ -42,32 +42,54 @@ export const getGeneralEvents = (
 export const sendReaction = async (
   pool: SimplePool,
   relaysToWrite: string[],
-  targetURL: string,
+  targetUrl: string,
   content: string,
-  allowNip07Only: boolean = true,
-  seckey: Uint8Array,
-  emojiurl?: string,
-) => {
-  const tags: string[][] = [['r', targetURL]];
-  if (emojiurl) {
-    tags.push(['emoji', content.replaceAll(':', ''), emojiurl]);
+  seckey?: Uint8Array,
+  emojiUrl?: string,
+): Promise<NostrEvent | null> => {
+  const tags: string[][] = [['r', targetUrl]];
+  if (emojiUrl) {
+    tags.push(['emoji', content.replaceAll(':', ''), emojiUrl]);
   }
   const baseEvent: EventTemplate = {
     kind: reactionEventKind,
+    tags,
+    content,
     created_at: Math.floor(Date.now() / 1000),
-    tags: tags,
-    content: content,
   };
-  let newEvent: NostrEvent;
+  let event: NostrEvent;
   if (window.nostr === undefined) {
-    if (allowNip07Only) {
+    if (seckey === undefined) {
       console.warn('window.nostr is undefined');
-      return;
+      return null;
     }
-    newEvent = finalizeEvent(baseEvent, seckey);
+    event = finalizeEvent(baseEvent, seckey);
   } else {
-    newEvent = await window.nostr.signEvent(baseEvent);
+    event = await window.nostr.signEvent(baseEvent);
   }
-  const pubs = pool.publish(relaysToWrite, newEvent);
+  const pubs = pool.publish(relaysToWrite, event);
   await Promise.any(pubs);
+  return event;
+};
+
+export const inputCount = (input: string): number => {
+  // simple check, not perfect
+  const segmeter = new Intl.Segmenter('ja-JP', { granularity: 'word' });
+  return Array.from(segmeter.segment(input)).length;
+};
+
+export const isCustomEmoji = (event: NostrEvent): boolean => {
+  const emojiTags = event.tags.filter((tag) => tag[0] === 'emoji');
+  if (emojiTags.length !== 1) return false;
+  const emojiTag = emojiTags[0];
+  return (
+    emojiTag.length >= 3 &&
+    /^\w+$/.test(emojiTag[1]) &&
+    URL.canParse(emojiTag[2]) &&
+    event.content === `:${emojiTag[1]}:`
+  );
+};
+
+export const isValidEmoji = (event: NostrEvent): boolean => {
+  return isCustomEmoji(event) || inputCount(event.content) <= 1;
 };

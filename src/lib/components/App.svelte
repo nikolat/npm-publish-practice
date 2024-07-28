@@ -1,8 +1,16 @@
 <script lang="ts">
   import type { SimplePool } from 'nostr-tools/pool';
   import type { NostrEvent } from 'nostr-tools/pure';
-  import { insertEventIntoAscendingList, normalizeURL } from 'nostr-tools/utils';
-  import { getGeneralEvents, sendReaction } from '../utils';
+  import {
+    insertEventIntoAscendingList,
+    normalizeURL,
+  } from 'nostr-tools/utils';
+  import {
+    getGeneralEvents,
+    inputCount,
+    isValidEmoji,
+    sendReaction,
+  } from '../utils';
   import {
     defaultReaction,
     defaultRelays,
@@ -40,7 +48,7 @@
     );
   };
 
-  const getProfiles = async (pubkeys: string[]) => {
+  const getProfiles = async (pubkeys: string[]): Promise<void> => {
     const profileEventsFetched = await getGeneralEvents(
       pool,
       profileRelays,
@@ -62,15 +70,21 @@
     );
   };
 
-  const callSendReaction = async () => {
-    await sendReaction(
+  const callSendReaction = async (): Promise<void> => {
+    const event = await sendReaction(
       pool,
       relays,
       targetUrl,
       reactionContent,
-      !allowAnonymousReaction,
-      anonymousSeckey,
+      allowAnonymousReaction ? anonymousSeckey : undefined,
     );
+    if (
+      event !== null &&
+      window.nostr !== undefined &&
+      !profiles.has(event.pubkey)
+    ) {
+      await getProfiles([event.pubkey]);
+    }
   };
 
   onMount(async () => {
@@ -79,9 +93,7 @@
     const makibishiReaction = element.dataset.content;
     const makibishiAllowAnonymousReaction =
       element.dataset.allowAnonymousReaction;
-    if (makibishiRelays === undefined) {
-      relays = defaultRelays;
-    } else {
+    if (makibishiRelays !== undefined) {
       relays = Array.from(
         new Set<string>(
           makibishiRelays
@@ -90,19 +102,26 @@
             .map((r) => normalizeURL(r)),
         ),
       );
+    } else {
+      relays = defaultRelays;
     }
-    if (makibishiUrl === undefined) {
+    if (makibishiUrl !== undefined && URL.canParse(makibishiUrl)) {
+      targetUrl = new URL(makibishiUrl).href;
+    } else {
       targetUrl = window.location.href;
-    } else {
-      targetUrl = URL.canParse(makibishiUrl)
-        ? new URL(makibishiUrl).href
-        : window.location.href;
     }
-    reactionContent = makibishiReaction ?? defaultReaction;
-    if (makibishiAllowAnonymousReaction === undefined) {
-      allowAnonymousReaction = false;
+    if (makibishiReaction !== undefined && inputCount(makibishiReaction) <= 1) {
+      reactionContent = makibishiReaction;
     } else {
-      allowAnonymousReaction = /^true$/i.test(makibishiAllowAnonymousReaction);
+      reactionContent = defaultReaction;
+    }
+    if (
+      makibishiAllowAnonymousReaction !== undefined &&
+      /^true$/i.test(makibishiAllowAnonymousReaction)
+    ) {
+      allowAnonymousReaction = true;
+    } else {
+      allowAnonymousReaction = false;
     }
     console.log('MAKIBISHI Settings:', {
       relays,
@@ -113,17 +132,18 @@
     isAllowedExpand = false;
     await getReactions(targetUrl);
     const pubkeys: string[] = Array.from(
-      new Set<string>(reactionEvents.map((ev) => ev.pubkey)),
+      new Set<string>(reactionValidEvents.map((ev) => ev.pubkey)),
     );
     await getProfiles(pubkeys);
   });
 
-  $: reactionFirst = reactionEvents.at(0)!;
-  $: reactionLast = reactionEvents.at(-1)!;
+  $: reactionValidEvents = reactionEvents.filter((ev) => isValidEmoji(ev));
+  $: reactionFirst = reactionValidEvents.at(0)!;
+  $: reactionLast = reactionValidEvents.at(-1)!;
 </script>
 
 <span class="makibishi-container">
-  <button class="makibishi-send" title="add a star" on:click="{callSendReaction}">
+  <button class="makibishi-send" title="add a star" on:click={callSendReaction}>
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="16"
@@ -136,13 +156,24 @@
       />
     </svg>
   </button>
-  {#if reactionEvents.length <= expansionThreshold || isAllowedExpand}
-    {#each reactionEvents as ev}<Reaction {ev} {profiles} />{/each}
+  {#if reactionValidEvents.length <= expansionThreshold || isAllowedExpand}
+    {#each reactionValidEvents as reactionEvent}<Reaction
+        {reactionEvent}
+        profileEvent={profiles.get(reactionEvent.pubkey)}
+      />{/each}
   {:else}
-  <Reaction ev="{reactionFirst}" {profiles} /><button
-    class="makibishi-expand"
-    on:click={ ()=> { isAllowedExpand = true; } }>{reactionEvents.length}</button
-  ><Reaction ev="{reactionLast}" {profiles} />
+    <Reaction
+      reactionEvent={reactionFirst}
+      profileEvent={profiles.get(reactionFirst.pubkey)}
+    /><button
+      class="makibishi-expand"
+      on:click={() => {
+        isAllowedExpand = true;
+      }}>{reactionValidEvents.length}</button
+    ><Reaction
+      reactionEvent={reactionLast}
+      profileEvent={profiles.get(reactionLast.pubkey)}
+    />
   {/if}
 </span>
 
